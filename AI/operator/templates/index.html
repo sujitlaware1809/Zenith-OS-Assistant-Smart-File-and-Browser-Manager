@@ -1,0 +1,673 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS and Browser Assistant</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .terminal {
+            background-color: #212529;
+            color: #00ff00;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .file-explorer {
+            border: 1px solid #dee2e6;
+            height: 400px;
+            overflow-y: auto;
+            padding: 0;
+            background-color: white;
+            border-radius: 5px;
+        }
+        .folder-item {
+            cursor: pointer;
+            padding: 8px 15px;
+            transition: background-color 0.2s;
+        }
+        .file-item {
+            padding: 8px 15px;
+            transition: background-color 0.2s;
+        }
+        .folder-item:hover, .file-item:hover {
+            background-color: #f1f1f1;
+        }
+        .folder-icon {
+            color: #ffc107;
+        }
+        .file-icon {
+            color: #6c757d;
+        }
+        .breadcrumb {
+            margin-bottom: 10px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .action-panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .system-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 3px solid #0d6efd;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .alert-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 350px;
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">OS and Browser Assistant</h1>
+        
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="alert-box" id="alertBox"></div>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="d-flex">
+                    <div class="tab active" data-tab="files">
+                        <i class="fas fa-folder"></i> File Explorer
+                    </div>
+                    <div class="tab" data-tab="browser">
+                        <i class="fas fa-globe"></i> Browser
+                    </div>
+                    <div class="tab" data-tab="system">
+                        <i class="fas fa-desktop"></i> System
+                    </div>
+                    <div class="tab" data-tab="terminal">
+                        <i class="fas fa-terminal"></i> Terminal
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Explorer Tab -->
+        <div class="tab-content active" id="filesTab">
+            <div class="row">
+                <div class="col-md-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb" id="path-breadcrumb">
+                            <li class="breadcrumb-item"><a href="#" onclick="loadDrives()">Drives</a></li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="file-explorer" id="file-explorer">
+                        <div class="text-center p-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading drives...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="action-panel">
+                        <h4 class="mb-3">File Actions</h4>
+                        
+                        <div class="mb-3">
+                            <label for="searchInput" class="form-label">Search Files</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Enter file name">
+                                <button class="btn btn-primary" id="searchBtn">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="newFolderName" class="form-label">Create Folder</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="newFolderName" placeholder="Folder name">
+                                <button class="btn btn-success" id="createFolderBtn">
+                                    <i class="fas fa-folder-plus"></i> Create
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="fileUpload" class="form-label">Upload File</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="fileUpload">
+                                <button class="btn btn-info" id="uploadBtn">
+                                    <i class="fas fa-upload"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash"></i> Delete Selected
+                            </button>
+                            <button class="btn btn-warning" id="renameBtn" disabled>
+                                <i class="fas fa-edit"></i> Rename Selected
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="system-info mt-3">
+                        <h4 class="mb-3">File Info</h4>
+                        <div id="fileInfo">
+                            <p class="text-muted">Select a file or folder to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Browser Tab -->
+        <div class="tab-content" id="browserTab">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="action-panel mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="urlInput" placeholder="Enter URL (e.g., https://example.com)">
+                            <button class="btn btn-primary" id="goBtn">
+                                <i class="fas fa-arrow-right"></i> Go
+                            </button>
+                            <button class="btn btn-secondary" id="refreshBtn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="btn-group mt-2">
+                            <button class="btn btn-outline-secondary" id="backBtn">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" id="forwardBtn">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="file-explorer">
+                        <iframe id="browserFrame" src="about:blank" class="browser-frame"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Tab -->
+        <div class="tab-content" id="systemTab">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="system-info mb-3">
+                        <h4 class="mb-3"><i class="fas fa-microchip"></i> System Information</h4>
+                        <ul class="list-group" id="systemInfoList">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                OS Platform
+                                <span class="badge bg-primary rounded-pill" id="osPlatform">Loading...</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Browser
+                                <span class="badge bg-primary rounded-pill" id="browserInfo">Loading...</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Screen Resolution
+                                <span class="badge bg-primary rounded-pill" id="screenRes">Loading...</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                CPU Cores
+                                <span class="badge bg-primary rounded-pill" id="cpuCores">Loading...</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Memory
+                                <span class="badge bg-primary rounded-pill" id="memoryInfo">Loading...</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="system-info mb-3">
+                        <h4 class="mb-3"><i class="fas fa-tools"></i> System Actions</h4>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" id="copySystemInfoBtn">
+                                <i class="fas fa-copy"></i> Copy System Info
+                            </button>
+                            <button class="btn btn-outline-secondary" id="takeScreenshotBtn">
+                                <i class="fas fa-camera"></i> Take Screenshot
+                            </button>
+                            <button class="btn btn-outline-info" id="clearCacheBtn">
+                                <i class="fas fa-broom"></i> Clear Browser Cache
+                            </button>
+                            <button class="btn btn-outline-warning" id="restartBtn">
+                                <i class="fas fa-power-off"></i> Restart Application
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="system-info">
+                        <h4 class="mb-3"><i class="fas fa-chart-line"></i> Performance</h4>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" id="cpuUsageBar" role="progressbar">CPU: 0%</div>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-info" id="memoryUsageBar" role="progressbar">Memory: 0%</div>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" id="diskUsageBar" role="progressbar">Disk: 0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Terminal Tab -->
+        <div class="tab-content" id="terminalTab">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="terminal" id="terminal">
+                        <div>OS and Browser Assistant Terminal</div>
+                        <div>Type 'help' for available commands</div>
+                        <div id="terminalOutput"></div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-success">$</span>
+                            <input type="text" class="form-control bg-transparent border-0 text-white" id="terminalInput" autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // File Explorer functionality
+        let currentPath = '';
+        let selectedItem = null;
+        
+        function loadDrives() {
+            // In a real app, this would fetch available drives from the system
+            // For demo purposes, we'll simulate it
+            const fileExplorer = document.getElementById('file-explorer');
+            fileExplorer.innerHTML = '';
+            
+            const drives = [
+                { name: 'Local Disk (C:)', type: 'drive' },
+                { name: 'Data (D:)', type: 'drive' },
+                { name: 'External (E:)', type: 'drive' }
+            ];
+            
+            drives.forEach(drive => {
+                const driveElement = document.createElement('div');
+                driveElement.className = 'folder-item';
+                driveElement.innerHTML = `<i class="fas fa-hdd folder-icon me-2"></i> ${drive.name}`;
+                driveElement.addEventListener('click', () => loadDirectory(drive.name));
+                fileExplorer.appendChild(driveElement);
+            });
+            
+            updateBreadcrumb(['Drives']);
+        }
+        
+        function loadDirectory(path) {
+            // In a real app, this would fetch directory contents from the system
+            // For demo purposes, we'll simulate it
+            const fileExplorer = document.getElementById('file-explorer');
+            fileExplorer.innerHTML = '';
+            
+            // Add parent directory link (except for root drives)
+            if (!path.includes(':')) {
+                const parentElement = document.createElement('div');
+                parentElement.className = 'folder-item';
+                parentElement.innerHTML = `<i class="fas fa-level-up-alt folder-icon me-2"></i> ..`;
+                parentElement.addEventListener('click', () => {
+                    const parts = currentPath.split('/');
+                    parts.pop();
+                    loadDirectory(parts.join('/'));
+                });
+                fileExplorer.appendChild(parentElement);
+            }
+            
+            // Simulate folder contents
+            const folders = [
+                { name: 'Documents', type: 'folder' },
+                { name: 'Pictures', type: 'folder' },
+                { name: 'Music', type: 'folder' },
+                { name: 'Downloads', type: 'folder' }
+            ];
+            
+            const files = [
+                { name: 'report.pdf', type: 'file', size: '2.4 MB' },
+                { name: 'presentation.pptx', type: 'file', size: '5.1 MB' },
+                { name: 'notes.txt', type: 'file', size: '12 KB' },
+                { name: 'image.jpg', type: 'file', size: '1.8 MB' }
+            ];
+            
+            folders.forEach(folder => {
+                const folderElement = document.createElement('div');
+                folderElement.className = 'folder-item';
+                folderElement.innerHTML = `<i class="fas fa-folder folder-icon me-2"></i> ${folder.name}`;
+                folderElement.addEventListener('click', () => {
+                    const newPath = path + '/' + folder.name;
+                    loadDirectory(newPath);
+                });
+                fileExplorer.appendChild(folderElement);
+            });
+            
+            files.forEach(file => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'file-item';
+                fileElement.innerHTML = `<i class="fas fa-file file-icon me-2"></i> ${file.name} <span class="text-muted float-end">${file.size}</span>`;
+                fileElement.addEventListener('click', () => selectItem(fileElement, file));
+                fileExplorer.appendChild(fileElement);
+            });
+            
+            currentPath = path;
+            updateBreadcrumb(path.split('/'));
+        }
+        
+        function updateBreadcrumb(pathParts) {
+            const breadcrumb = document.getElementById('path-breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            pathParts.forEach((part, index) => {
+                const li = document.createElement('li');
+                li.className = 'breadcrumb-item';
+                
+                if (index === pathParts.length - 1) {
+                    li.innerHTML = part;
+                    li.setAttribute('aria-current', 'page');
+                } else {
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = part;
+                    a.addEventListener('click', () => {
+                        const newPath = pathParts.slice(0, index + 1).join('/');
+                        loadDirectory(newPath);
+                    });
+                    li.appendChild(a);
+                }
+                
+                breadcrumb.appendChild(li);
+            });
+        }
+        
+        function selectItem(element, file) {
+            // Remove selection from all items
+            document.querySelectorAll('.folder-item, .file-item').forEach(item => {
+                item.style.backgroundColor = '';
+            });
+            
+            // Add selection to clicked item
+            element.style.backgroundColor = '#e9ecef';
+            selectedItem = file;
+            
+            // Enable action buttons
+            document.getElementById('deleteBtn').disabled = false;
+            document.getElementById('renameBtn').disabled = false;
+            
+            // Update file info
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.innerHTML = `
+                <h5>${file.name}</h5>
+                <p><strong>Type:</strong> ${file.type}</p>
+                ${file.size ? `<p><strong>Size:</strong> ${file.size}</p>` : ''}
+                <p><strong>Path:</strong> ${currentPath}/${file.name}</p>
+            `;
+        }
+        
+        // Browser functionality
+        document.getElementById('goBtn').addEventListener('click', () => {
+            let url = document.getElementById('urlInput').value;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            document.getElementById('browserFrame').src = url;
+        });
+        
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            document.getElementById('browserFrame').src = document.getElementById('browserFrame').src;
+        });
+        
+        document.getElementById('backBtn').addEventListener('click', () => {
+            // In a real app, this would use the browser history API
+            showAlert('Back navigation is not implemented in this demo', 'warning');
+        });
+        
+        document.getElementById('forwardBtn').addEventListener('click', () => {
+            // In a real app, this would use the browser history API
+            showAlert('Forward navigation is not implemented in this demo', 'warning');
+        });
+        
+        // System info functionality
+        function updateSystemInfo() {
+            // Get browser info
+            const userAgent = navigator.userAgent;
+            let browserName;
+            
+            if (userAgent.includes('Firefox')) browserName = 'Firefox';
+            else if (userAgent.includes('Chrome')) browserName = 'Chrome';
+            else if (userAgent.includes('Safari')) browserName = 'Safari';
+            else if (userAgent.includes('Edge')) browserName = 'Edge';
+            else browserName = 'Unknown';
+            
+            document.getElementById('browserInfo').textContent = browserName;
+            document.getElementById('osPlatform').textContent = navigator.platform;
+            document.getElementById('screenRes').textContent = `${window.screen.width}x${window.screen.height}`;
+            document.getElementById('cpuCores').textContent = navigator.hardwareConcurrency || 'Unknown';
+            
+            // Simulate performance metrics
+            updatePerformanceMetrics();
+        }
+        
+        function updatePerformanceMetrics() {
+            // Simulate CPU usage (random for demo)
+            const cpuUsage = Math.floor(Math.random() * 30) + 10;
+            const cpuBar = document.getElementById('cpuUsageBar');
+            cpuBar.style.width = `${cpuUsage}%`;
+            cpuBar.textContent = `CPU: ${cpuUsage}%`;
+            
+            // Simulate memory usage (random for demo)
+            const memUsage = Math.floor(Math.random() * 40) + 30;
+            const memBar = document.getElementById('memoryUsageBar');
+            memBar.style.width = `${memUsage}%`;
+            memBar.textContent = `Memory: ${memUsage}%`;
+            
+            // Simulate disk usage (random for demo)
+            const diskUsage = Math.floor(Math.random() * 50) + 20;
+            const diskBar = document.getElementById('diskUsageBar');
+            diskBar.style.width = `${diskUsage}%`;
+            diskBar.textContent = `Disk: ${diskUsage}%`;
+            
+            // Update every 2 seconds
+            setTimeout(updatePerformanceMetrics, 2000);
+        }
+        
+        document.getElementById('copySystemInfoBtn').addEventListener('click', () => {
+            const systemInfo = `
+                OS: ${navigator.platform}
+                Browser: ${document.getElementById('browserInfo').textContent}
+                Screen: ${document.getElementById('screenRes').textContent}
+                CPU Cores: ${document.getElementById('cpuCores').textContent}
+            `;
+            
+            navigator.clipboard.writeText(systemInfo).then(() => {
+                showAlert('System info copied to clipboard!', 'success');
+            });
+        });
+        
+        document.getElementById('takeScreenshotBtn').addEventListener('click', () => {
+            showAlert('Screenshot functionality would be implemented in a real app', 'info');
+        });
+        
+        document.getElementById('clearCacheBtn').addEventListener('click', () => {
+            showAlert('Browser cache cleared (simulated)', 'success');
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to restart the application?')) {
+                showAlert('Application restarting...', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        });
+        
+        // Terminal functionality
+        const terminalInput = document.getElementById('terminalInput');
+        const terminalOutput = document.getElementById('terminalOutput');
+        
+        terminalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const command = terminalInput.value.trim();
+                terminalInput.value = '';
+                
+                // Add command to output
+                addTerminalLine(`$ ${command}`);
+                
+                // Process command
+                processCommand(command);
+            }
+        });
+        
+        function addTerminalLine(text) {
+            const line = document.createElement('div');
+            line.textContent = text;
+            terminalOutput.appendChild(line);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+        
+        function processCommand(command) {
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1);
+            
+            switch (cmd) {
+                case 'help':
+                    addTerminalLine('Available commands:');
+                    addTerminalLine('help - Show this help message');
+                    addTerminalLine('clear - Clear the terminal');
+                    addTerminalLine('ls - List files (simulated)');
+                    addTerminalLine('echo [text] - Echo back the text');
+                    addTerminalLine('date - Show current date and time');
+                    addTerminalLine('sysinfo - Show system information');
+                    break;
+                    
+                case 'clear':
+                    terminalOutput.innerHTML = '';
+                    break;
+                    
+                case 'ls':
+                    addTerminalLine('Documents/ Pictures/ Music/ Downloads/');
+                    addTerminalLine('report.pdf presentation.pptx notes.txt image.jpg');
+                    break;
+                    
+                case 'echo':
+                    addTerminalLine(args.join(' '));
+                    break;
+                    
+                case 'date':
+                    addTerminalLine(new Date().toString());
+                    break;
+                    
+                case 'sysinfo':
+                    addTerminalLine(`OS: ${navigator.platform}`);
+                    addTerminalLine(`Browser: ${navigator.userAgent}`);
+                    addTerminalLine(`Screen: ${window.screen.width}x${window.screen.height}`);
+                    break;
+                    
+                case '':
+                    break;
+                    
+                default:
+                    addTerminalLine(`Command not found: ${cmd}`);
+            }
+        }
+        
+        // Utility functions
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.role = 'alert';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            alertBox.appendChild(alert);
+            
+            // Auto-dismiss after 3 seconds
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }, 3000);
+        }
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDrives();
+            updateSystemInfo();
+            
+            // Set default browser URL
+            document.getElementById('urlInput').value = 'https://www.google.com';
+            document.getElementById('browserFrame').src = 'https://www.google.com';
+            
+            // Add welcome message to terminal
+            addTerminalLine('Welcome to OS and Browser Assistant Terminal');
+            addTerminalLine('Type "help" for available commands');
+        });
+    </script>
+</body>
+</html>
