@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">Organization Results</h2>
+    
+    <div class="status-message status-success">
+        Files organized successfully in {{ folder_path }}
+    </div>
+    
+    <h3>Organization Log</h3>
+    <div class="tree-view">
+        {% for result in results %}
+            <div>{{ result }}</div>
+        {% endfor %}
+    </div>
+    
+    <h3>Final Structure</h3>
+    <div class="tree-view">
+        {% for line in organized_tree %}
+            <div>{{ line }}</div>
+        {% endfor %}
+    </div>
+    
+    <a href="{{ url_for('index') }}" class="btn btn-block">Organize Another Folder</a>
+</div>
+{% endblock %}

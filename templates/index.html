@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">File Selection</h2>
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="form-group">
+            <label for="files">Select Files to Organize:</label>
+            <input type="file" id="files" name="files" multiple webkitdirectory directory>
+            <small class="form-text text-muted">Select multiple files or an entire folder</small>
+        </div>
+
+        <div class="form-group">
+            <label>Organization Mode:</label>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="mode" value="1" checked> By file type
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="mode" value="2"> By date
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="mode" value="3"> By content pattern
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="sortOrder">Sorting Order:</label>
+            <select id="sortOrder" name="sort_order">
+                <option value="1">Alphabetical (A-Z)</option>
+                <option value="2">Creation time (oldest first)</option>
+                <option value="3">Modified time (oldest first)</option>
+                <option value="4">Size (smallest first)</option>
+                <option value="5">Size (largest first)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-block" id="submitBtn">Analyze Files</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const filesInput = document.getElementById('files');
+    if (filesInput.files.length === 0) {
+        alert('Please select at least one file');
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

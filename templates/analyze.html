@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">Analysis Results</h2>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="tree">Directory Tree</div>
+        <div class="tab" data-tab="preview">File Preview</div>
+        <div class="tab" data-tab="categories">Categories</div>
+    </div>
+    
+    <div class="tab-content active" id="treeTab">
+        <h3>Current Structure</h3>
+        <div class="tree-view">
+            {% for line in current_tree %}
+                <div>{{ line }}</div>
+            {% endfor %}
+        </div>
+        
+        <h3>Proposed Structure</h3>
+        <div class="tree-view">
+            {% for line in proposed_tree %}
+                <div>{{ line }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="tab-content" id="previewTab">
+        <div class="file-preview">
+            {% for file in files %}
+                <div class="file-card">
+                    <div class="file-icon">
+                        📄
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">{{ file.name }}</div>
+                        <div class="file-category">{{ file.size }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="tab-content" id="categoriesTab">
+        <div class="tree-view">
+            {% for category, count in categories.items() %}
+                <div>├── {{ category }} ({{ count }} files)</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <form action="{{ url_for('organize') }}" method="POST">
+        <button type="submit" class="btn btn-success btn-block">Organize Files</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab') + 'Tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}
