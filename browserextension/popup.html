@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Statistics</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Browser Statistics</h1>
+            <div class="tab-actions">
+                <button id="start" title="Voice Command"><i class="fas fa-microphone"></i></button>
+                <button id="refresh-btn" title="Refresh Data"><i class="fas fa-sync-alt"></i></button>
+                <button id="settings-btn" title="Settings"><i class="fas fa-cog"></i></button>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="stats">Statistics</button>
+            <button class="tab-btn" data-tab="system">System Info</button>
+            <button class="tab-btn" data-tab="security">Security</button>
+        </div>
+        
+        <div class="tab-content" id="stats-content">
+            <div class="stats-row">
+                <div class="stats-card" id="tabs-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-table-cells"></i> Current Tabs</h2>
+                        <button id="close-tabs-btn" title="Close Selected Tabs"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="stat-value" id="tab-count">Loading...</div>
+                    <div class="stat-detail" id="tab-domains">Calculating...</div>
+                    <div class="tab-list" id="open-tabs-list">
+                        <div class="loading">Loading open tabs...</div>
+                    </div>
+                </div>
+                
+                <div class="stats-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-clock-rotate-left"></i> Recent History</h2>
+                    </div>
+                    <div class="stat-value" id="history-count">Loading...</div>
+                    <div class="chart-container">
+                        <canvas id="history-chart"></canvas>
+                    </div>
+                    <div class="stat-list" id="history-list">
+                        <div class="loading">Fetching recent history...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stats-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-download"></i> Recent Downloads</h2>
+                    </div>
+                    <div class="stat-value" id="download-count">Loading...</div>
+                    <div class="stat-list" id="download-list">
+                        <div class="loading">Fetching download data...</div>
+                    </div>
+                </div>
+                
+                <div class="stats-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-gauge-high"></i> Browser Usage</h2>
+                    </div>
+                    <div class="usage-stats" id="usage-stats">
+                        <div class="loading">Calculating usage statistics...</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="usage-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Info Tab Content -->
+        <div class="tab-content hidden" id="system-content">
+            <div class="system-section">
+                <div class="system-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-desktop"></i> Software</h2>
+                    </div>
+                    <div class="system-info" id="software-info">
+                        <div class="info-item">
+                            <span class="info-label">Operating System:</span>
+                            <span class="info-value" id="os-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Browser:</span>
+                            <span class="info-value" id="browser-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Browser Plugins:</span>
+                            <span class="info-value" id="plugins-info">Detecting...</span>
+                        </div>
+                        <div class="alert-box">
+                            <strong>Prevention:</strong> To prevent your browser from leaking information about your software use <strong>NoScript</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-microchip"></i> Hardware</h2>
+                    </div>
+                    <div class="system-info" id="hardware-info">
+                        <div class="info-item">
+                            <span class="info-label">CPU:</span>
+                            <span class="info-value" id="cpu-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">GPU:</span>
+                            <span class="info-value" id="gpu-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Display:</span>
+                            <span class="info-value" id="display-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Battery Status:</span>
+                            <span class="info-value" id="battery-info">Detecting...</span>
+                        </div>
+                        <div class="alert-box">
+                            <strong>Prevention:</strong> To prevent your browser from leaking device information use <strong>NoScript</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="system-section">
+                <div class="system-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-wifi"></i> Connection</h2>
+                    </div>
+                    <div class="system-info" id="connection-info">
+                        <div class="info-item">
+                            <span class="info-label">Previous Page:</span>
+                            <span class="info-value" id="referrer-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Public IP:</span>
+                            <span class="info-value" id="ip-info">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Download Speed:</span>
+                            <span class="info-value" id="speed-info">Calculating...</span>
+                        </div>
+                        <div class="alert-box">
+                            <strong>Prevention:</strong> To prevent your browser from leaking information about your connection use <strong>NoScript</strong>, a <strong>Webproxy</strong>, or <strong>Tor</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-mobile-screen"></i> Device Orientation</h2>
+                    </div>
+                    <div class="system-info" id="gyro-info">
+                        <div class="info-item">
+                            <span class="info-label">Orientation:</span>
+                            <span class="info-value" id="orientation-status">Detecting...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Alpha:</span>
+                            <span class="info-value" id="alpha-value">0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Beta:</span>
+                            <span class="info-value" id="beta-value">0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Gamma:</span>
+                            <span class="info-value" id="gamma-value">0°</span>
+                        </div>
+                        <div class="orientation-visual">
+                            <div class="device-model" id="device-model"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Tab Content -->
+        <div class="tab-content hidden" id="security-content">
+            <div class="security-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Social Media</h2>
+                </div>
+                <div class="security-info" id="social-info">
+                    <div class="loading">Detecting login status...</div>
+                    <div class="alert-box">
+                        <strong>Prevention:</strong> To prevent your browser from leaking information about your social networks, logout, use <strong>Private Browsing</strong>, or <strong>NoScript</strong>.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="security-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-mouse-pointer"></i> Click Jacking</h2>
+                </div>
+                <div class="security-info">
+                    <p>Misuses your Google/Facebook Account to reveal your identity.</p>
+                    <ul>
+                        <li>Google Plus fixed the bug.</li>
+                        <li>Facebook Clickjacking seems to work again.</li>
+                    </ul>
+                    <div class="alert-box">
+                        <strong>Prevention:</strong> To prevent getting clickjacked, do not visit dubious sites, use <strong>Private Browsing</strong>, or <strong>NoScript</strong>.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="security-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-keyboard"></i> Auto-Fill Phishing</h2>
+                </div>
+                <div class="security-info">
+                    <p>Misuses your browser's Auto-fill feature to steal your identity.</p>
+                    <div class="alert-box">
+                        <strong>Prevention:</strong> To prevent this attack you should disable the autofill feature, or at least never use it on dubious websites!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Speech Recognition Feedback -->
+    <div class="speech-feedback" id="speech-feedback">
+        <i class="fas fa-microphone"></i>
+        <span id="speech-text">Listening...</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="popup.js"></script>
+    <script src="speechControl.js"></script>
+</body>
+</html>
